@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,3 +19,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::post('users', [UserController::class, 'store'])->name('users.store')->middleware('role:admin');
+Route::get('users/latest', [UserController::class, 'getLatest'])->name('users.getLatest');
+
+Route::post('transactions', [TransactionController::class, 'store'])->name('transactions.store')->middleware('auth');
