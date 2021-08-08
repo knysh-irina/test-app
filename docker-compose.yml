@@ -1,0 +1,64 @@
+version: '3.7'
+
+volumes:
+  node_modules:
+
+networks:
+  test_app:
+    name: test_app
+  test_rds:
+    name: test_rds
+
+services:
+  test_nginx:
+    container_name: test_nginx
+    image: nginx:1.17-alpine
+    restart: unless-stopped
+    ports:
+      - 80:80
+    depends_on:
+      - test_php
+    volumes:
+      - ./_docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./_docker/nginx/vhost.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./:/var/www/app
+    networks:
+      - test_app
+
+  test_php:
+    container_name: test_php
+    build:
+      context: ./_docker
+      dockerfile: ./php/Dockerfile
+      args:
+        PHP_TAG: 8.0
+    image: php-test:8.0
+    working_dir: /var/www/app
+    restart: unless-stopped
+    depends_on:
+      - test_mysql
+    volumes:
+      - ./:/var/www/app
+    environment:
+      PHP_IDE_CONFIG: ${DOCKER_PHP_IDE_CONFIG}
+      XDEBUG_SESSION: ${DOCKER_XDEBUG_SESSION}
+      XDEBUG_CLIENT_HOST: ${DOCKER_XDEBUG_CLIENT_HOST}
+    networks:
+      - test_app
+      - test_rds
+
+  test_mysql:
+    container_name: test_mysql
+    image: mysql:5.7
+    restart: unless-stopped
+    ports:
+      - 33061:3306
+    volumes:
+      - ./_docker/mysql/config.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf:ro
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DOCKER_MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${DOCKER_MYSQL_DATABASE}
+      MYSQL_USER: ${DOCKER_MYSQL_USER}
+      MYSQL_PASSWORD: ${DOCKER_MYSQL_PASSWORD}
+    networks:
+        - test_rds

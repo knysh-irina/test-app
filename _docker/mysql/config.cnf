@@ -1,0 +1,147 @@
+#
+# The MySQL  Server configuration file.
+#
+# For explanations see http://dev.mysql.com/doc/mysql/en/server-system-variables.html
+#
+# The settings marked with a specific comment or the word "UPD" (after the value)
+# should be adjusted for your system by using database diagnostics tools like:
+#
+# https://github.com/major/MySQLTuner-perl
+# or
+# https://github.com/RootService/tuning-primer (supports MySQL up to v5.7)
+#
+
+[client]
+
+socket                          = /var/run/mysqld/mysqld.sock
+port                            = 3306
+default-character-set           = utf8mb4
+
+[mysql]
+
+default-character-set           = utf8mb4
+
+[mysqld]
+
+user                            = mysql
+pid-file                        = /var/run/mysqld/mysqld.pid
+socket                          = /var/run/mysqld/mysqld.sock
+port                            = 3306
+tmpdir                          = /tmp
+basedir                         = /usr
+datadir                         = /var/lib/mysql
+
+max_allowed_packet              = 64M
+max_connect_errors              = 250000
+
+skip_external_locking
+skip_name_resolve
+
+# By default we only accept connections from localhost | 0.0.0.0 to allow remote connections
+#bind-address                    = 127.0.0.1
+
+character-set-server            = utf8mb4
+collation-server                = utf8mb4_unicode_ci
+init_connect                    = 'SET NAMES utf8mb4'
+init_connect                    = 'SET collation_connection = utf8mb4_unicode_ci'
+
+# Always use default encoding even if you will make mistake on application layer
+character-set-client-handshake  = FALSE
+
+# Ignore client information and use the default server character set
+#skip-character-set-client-handshake
+
+# Enable for b/c with databases created in older MySQL/MariaDB versions (e.g. when using null dates)
+#sql_mode                       = ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES
+
+explicit_defaults_for_timestamp = 1
+
+# InnoDB Settings
+default_storage_engine          = InnoDB
+innodb_buffer_pool_instances    = 1     # Use 1 instance per 1GB of InnoDB pool size
+innodb_buffer_pool_size         = 512M  # Use up to 70-80% of RAM
+innodb_file_per_table           = 1
+innodb_flush_log_at_trx_commit  = 0
+innodb_flush_method             = O_DIRECT
+innodb_log_buffer_size          = 16M
+innodb_log_file_size            = 128M
+innodb_stats_on_metadata        = 0
+innodb_read_io_threads          = 16
+innodb_write_io_threads         = 16
+
+#innodb_temp_data_file_path     = ibtmp1:64M:autoextend:max:20G # Control the maximum size for the ibtmp1 file
+#innodb_thread_concurrency      = 4     # Optional: Set to the number of CPUs on your system (minus 1 or 2) to better
+                                        # contain CPU usage. E.g. if your system has 8 CPUs, try 6 or 7 and check
+                                        # the overall load produced by MySQL/MariaDB.
+
+# MyISAM Settings
+query_cache_limit               = 1M    # UPD - Option supported by MariaDB & up to MySQL 5.7, remove this line on MySQL 8.x
+query_cache_size                = 16M   # UPD - Option supported by MariaDB & up to MySQL 5.7, remove this line on MySQL 8.x
+query_cache_type                = 1     # Option supported by MariaDB & up to MySQL 5.7, remove this line on MySQL 8.x
+
+key_buffer_size                 = 16M   # UPD
+
+low_priority_updates            = 1
+concurrent_insert               = 2
+
+# Connection Settings
+max_connections                 = 64   # UPD
+
+back_log                        = 512
+thread_cache_size               = 128
+thread_stack                    = 128K
+
+interactive_timeout             = 180
+wait_timeout                    = 180
+
+# For MySQL 5.7+ only (disabled by default)
+#max_execution_time             = 30000 # Set a timeout limit for SELECT statements (value in milliseconds).
+                                        # This option may be useful to address aggressive crawling on large sites,
+                                        # but it can also cause issues (e.g. with backups). So use with extreme caution and test!
+                                        # More info at: https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_max_execution_time
+
+# For MariaDB 10.1.1+ only (disabled by default)
+#max_statement_time             = 30    # The equivalent of "max_execution_time" in MySQL 5.7+ (set above)
+                                        # The variable is of type double, thus you can use subsecond timeout.
+                                        # For example you can use value 0.01 for 10 milliseconds timeout.
+                                        # More info at: https://mariadb.com/kb/en/aborting-statements/
+
+# Buffer Settings
+join_buffer_size                = 2M    # UPD
+read_buffer_size                = 2M    # UPD
+read_rnd_buffer_size            = 2M    # UPD
+sort_buffer_size                = 2M    # UPD
+
+# Table Settings
+# In systemd managed systems like Ubuntu 16.04+ or CentOS 7+, you need to perform an extra action for table_open_cache & open_files_limit
+# to be overriden (also see comment next to open_files_limit).
+# E.g. for MySQL 5.7, please check: https://dev.mysql.com/doc/refman/5.7/en/using-systemd.html
+# and for MariaDB check: https://mariadb.com/kb/en/library/systemd/
+table_definition_cache          = 20000 # UPD
+table_open_cache                = 20000 # UPD
+open_files_limit                = 30000 # UPD - This can be 2x to 3x the table_open_cache value or match the system's
+                                        # open files limit usually set in /etc/sysctl.conf or /etc/security/limits.conf
+                                        # In systemd managed systems this limit must also be set in:
+                                        # /etc/systemd/system/mysqld.service.d/override.conf (for MySQL 5.7+) and
+                                        # /etc/systemd/system/mariadb.service.d/override.conf (for MariaDB)
+
+max_heap_table_size             = 64M
+tmp_table_size                  = 64M
+
+# Search Settings
+ft_min_word_len                 = 3     # Minimum length of words to be indexed for search results
+
+# Logging
+log_error                       = /var/log/mysql/error.log
+log_queries_not_using_indexes   = 1
+long_query_time                 = 5
+slow_query_log                  = 1     # Disable for production
+slow_query_log_file             = /var/log/mysql/slow.log
+expire_logs_days                = 3
+max_binlog_size                 = 50M
+
+[mysqldump]
+
+quick
+quote_names
+max_allowed_packet              = 64M
