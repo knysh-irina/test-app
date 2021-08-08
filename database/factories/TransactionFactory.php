@@ -2,17 +2,18 @@
 
 namespace Database\Factories;
 
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class UserFactory extends Factory
+class TransactionFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
      * @var string
      */
-    protected $model = User::class;
+    protected $model = Transaction::class;
 
     /**
      * Define the model's default state.
@@ -22,9 +23,9 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
-            'permissions' => User::ROLE_USER,
+            'user_id' => User::factory(),
+            'type' => Transaction::TYPE_DEBIT,
+            'amount' => $this->faker->randomFloat(2,0 , 10),
         ];
     }
 }

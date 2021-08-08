@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory;
+
+    public const ROLE_ADMIN = 'ADMIN';
+    public const ROLE_USER = 'USER';
 
     /**
      * The attributes that are mass assignable.
@@ -19,7 +22,6 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'password',
     ];
 
     /**
@@ -28,16 +30,21 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'permissions',
     ];
 
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'user_id');
+    }
+
     /**
-     * The attributes that should be cast to native types.
+     * @param string $role
      *
-     * @var array
+     * @return bool
      */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    public function isRole(string $role): bool
+    {
+        return $this->permissions === Str::upper($role);
+    }
 }
